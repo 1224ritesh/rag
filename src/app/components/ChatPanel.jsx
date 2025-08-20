@@ -74,9 +74,9 @@ export default function ChatPanel() {
       <div className="flex-1 overflow-y-auto mb-6 space-y-4 pr-2">
         {messages.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-8 h-8 text-blue-600"
+                className="w-8 h-8 text-indigo-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -89,10 +89,10 @@ export default function ChatPanel() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-slate-700 mb-2">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">
               Ready to help!
             </h3>
-            <p className="text-slate-500 max-w-md mx-auto">
+            <p className="text-gray-500 max-w-md mx-auto">
               Start by asking a question about your uploaded documents or text
               content. I'll provide answers based on your knowledge base.
             </p>
@@ -105,7 +105,7 @@ export default function ChatPanel() {
                 <button
                   key={i}
                   onClick={() => setInput(suggestion)}
-                  className="px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors duration-200"
+                  className="px-3 py-1.5 text-sm bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors duration-200 border border-indigo-200"
                 >
                   {suggestion}
                 </button>
@@ -137,10 +137,10 @@ export default function ChatPanel() {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                         message.role === "user"
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600"
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600"
                           : message.error
                           ? "bg-red-500"
-                          : "bg-gradient-to-r from-emerald-500 to-teal-500"
+                          : "bg-gradient-to-r from-emerald-500 to-cyan-500"
                       }`}
                     >
                       {message.role === "user" ? (
@@ -172,10 +172,10 @@ export default function ChatPanel() {
                     <div
                       className={`relative px-4 py-3 rounded-2xl shadow-sm ${
                         message.role === "user"
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
                           : message.error
                           ? "bg-red-50 text-red-800 border border-red-200"
-                          : "bg-white text-slate-800 border border-slate-200"
+                          : "bg-white text-gray-800 border border-gray-200"
                       }`}
                     >
                       <div className="prose prose-sm max-w-none">
@@ -186,15 +186,15 @@ export default function ChatPanel() {
 
                       {/* Sources */}
                       {message.sources && message.sources.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-slate-200">
-                          <p className="text-xs font-semibold text-slate-600 mb-2">
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <p className="text-xs font-semibold text-gray-600 mb-2">
                             📚 Sources:
                           </p>
                           <div className="flex flex-wrap gap-1">
                             {message.sources.map((source) => (
                               <span
                                 key={source.id}
-                                className="inline-flex items-center px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-md"
+                                className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md"
                               >
                                 <span className="font-medium">
                                   [{source.id}]
@@ -212,8 +212,8 @@ export default function ChatPanel() {
                       <div
                         className={`text-xs mt-2 ${
                           message.role === "user"
-                            ? "text-blue-100"
-                            : "text-slate-500"
+                            ? "text-indigo-100"
+                            : "text-gray-500"
                         }`}
                       >
                         {formatTime(Date.now())}
@@ -228,7 +228,7 @@ export default function ChatPanel() {
             {isLoading && (
               <div className="flex justify-start mb-4">
                 <div className="flex items-end space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
                     <svg
                       className="w-4 h-4 text-white"
                       fill="none"
@@ -243,20 +243,20 @@ export default function ChatPanel() {
                       />
                     </svg>
                   </div>
-                  <div className="bg-white border border-slate-200 px-4 py-3 rounded-2xl shadow-sm">
+                  <div className="bg-white border border-gray-200 px-4 py-3 rounded-2xl shadow-sm">
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
                         <div
-                          className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0.1s" }}
                         ></div>
                         <div
-                          className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0.2s" }}
                         ></div>
                       </div>
-                      <span className="text-slate-600 text-sm">
+                      <span className="text-gray-600 text-sm">
                         AI is thinking...
                       </span>
                     </div>
@@ -270,7 +270,7 @@ export default function ChatPanel() {
       </div>
 
       {/* Input Form */}
-      <div className="border-t border-slate-200 pt-4">
+      <div className="border-t border-gray-200 pt-4">
         <form onSubmit={handleSubmit} className="flex space-x-3">
           <div className="flex-1 relative">
             <input
@@ -278,10 +278,10 @@ export default function ChatPanel() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything about your documents..."
-              className="w-full px-4 py-3 pr-12 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
+              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80 backdrop-blur-sm text-black placeholder-gray-500"
               disabled={isLoading}
             />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400">
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -300,7 +300,7 @@ export default function ChatPanel() {
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl flex items-center space-x-2"
+            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl flex items-center space-x-2"
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

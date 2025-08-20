@@ -90,13 +90,13 @@ export default function DataIngest() {
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
         <button
           onClick={() => setActiveTab("upload")}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
             activeTab === "upload"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
           }`}
         >
           📁 Upload Files
@@ -105,8 +105,8 @@ export default function DataIngest() {
           onClick={() => setActiveTab("text")}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
             activeTab === "text"
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
           }`}
         >
           📝 Add Text
@@ -116,7 +116,7 @@ export default function DataIngest() {
       {/* Content Area */}
       <div className="min-h-[200px]">
         {activeTab === "upload" ? (
-          <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors duration-200">
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50/50 hover:bg-gray-50 transition-colors duration-200">
             <UploadButton
               onFileUpload={handleFileUpload}
               disabled={isProcessing}
@@ -124,8 +124,8 @@ export default function DataIngest() {
 
             {isProcessing && (
               <div className="mt-6 flex items-center justify-center space-x-3">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="text-slate-600 font-medium">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                <span className="text-gray-600 font-medium">
                   Processing files...
                 </span>
               </div>
@@ -138,10 +138,10 @@ export default function DataIngest() {
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
                 placeholder="Enter your text content here... This could be notes, articles, documentation, or any text you want to chat with."
-                className="w-full h-40 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white/80 backdrop-blur-sm"
+                className="w-full h-40 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none bg-white/80 backdrop-blur-sm text-black placeholder-gray-500"
                 disabled={isProcessing}
               />
-              <div className="absolute bottom-3 right-3 text-xs text-slate-500">
+              <div className="absolute bottom-3 right-3 text-xs text-gray-500">
                 {textContent.length} characters
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function DataIngest() {
             <button
               onClick={handleTextSubmit}
               disabled={isProcessing || !textContent.trim()}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg"
+              className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg"
             >
               {isProcessing ? (
                 <span className="flex items-center justify-center space-x-2">
@@ -181,21 +181,21 @@ export default function DataIngest() {
 
       {/* Uploaded Files List */}
       {uploadedFiles.length > 0 && (
-        <div className="bg-slate-50 rounded-xl p-4">
-          <h3 className="font-semibold text-slate-700 mb-3 flex items-center space-x-2">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3 flex items-center space-x-2">
             <span>📚 Knowledge Base Content</span>
-            <span className="bg-slate-200 text-slate-600 px-2 py-1 rounded-full text-xs">
+            <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs">
               {uploadedFiles.length} items
             </span>
           </h3>
           <div className="space-y-2 max-h-32 overflow-y-auto">
             {uploadedFiles.map((filename, index) => (
               <div key={index} className="flex items-center space-x-3 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-slate-700 flex-1 truncate">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span className="text-gray-700 flex-1 truncate">
                   {filename}
                 </span>
-                <span className="text-slate-500 text-xs">Added</span>
+                <span className="text-gray-500 text-xs">Added</span>
               </div>
             ))}
           </div>

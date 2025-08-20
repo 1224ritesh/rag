@@ -3,13 +3,13 @@ import DataIngest from "./components/DataIngest";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-lg border-b border-slate-200/60 sticky top-0 z-50">
+      <header className="bg-white/90 backdrop-blur-lg border-b border-indigo-200/50 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -25,17 +25,17 @@ export default function Home() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-900 to-purple-700 bg-clip-text text-transparent">
                   AI Document Assistant
                 </h1>
-                <p className="text-slate-600 text-sm">
+                <p className="text-gray-600 text-sm">
                   Upload documents and chat with your content
                 </p>
               </div>
             </div>
-            <div className="hidden md:flex items-center space-x-2 text-sm text-slate-500">
+            <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500">
               <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                 <span>Ready</span>
               </div>
             </div>
@@ -48,9 +48,9 @@ export default function Home() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 max-w-7xl mx-auto">
           {/* Data Ingestion Panel */}
           <div className="space-y-6">
-            <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8">
+            <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-indigo-200/30 p-8">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-md">
                   <svg
                     className="w-5 h-5 text-white"
                     fill="none"
@@ -66,10 +66,10 @@ export default function Home() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-800">
+                  <h2 className="text-xl font-semibold text-gray-800">
                     Knowledge Base
                   </h2>
-                  <p className="text-slate-600 text-sm">
+                  <p className="text-gray-600 text-sm">
                     Upload documents or add text content
                   </p>
                 </div>
@@ -80,9 +80,9 @@ export default function Home() {
 
           {/* Chat Panel */}
           <div className="space-y-6">
-            <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8 h-[calc(100vh-12rem)]">
+            <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-indigo-200/30 p-8 h-[calc(100vh-12rem)]">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-md">
                   <svg
                     className="w-5 h-5 text-white"
                     fill="none"
@@ -98,10 +98,10 @@ export default function Home() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-800">
+                  <h2 className="text-xl font-semibold text-gray-800">
                     AI Assistant
                   </h2>
-                  <p className="text-slate-600 text-sm">
+                  <p className="text-gray-600 text-sm">
                     Ask questions about your content
                   </p>
                 </div>

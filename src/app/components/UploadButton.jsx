@@ -103,10 +103,10 @@ export default function UploadButton({ onFileUpload, disabled = false }) {
       <div
         className={`p-8 border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer ${
           dragOver
-            ? "border-blue-500 bg-blue-50"
+            ? "border-indigo-500 bg-indigo-50"
             : disabled
-            ? "border-slate-300 bg-slate-100 cursor-not-allowed"
-            : "border-slate-400 hover:border-blue-500 hover:bg-blue-50"
+            ? "border-gray-300 bg-gray-100 cursor-not-allowed"
+            : "border-gray-400 hover:border-indigo-500 hover:bg-indigo-50"
         }`}
         onClick={handleClick}
       >
@@ -115,19 +115,19 @@ export default function UploadButton({ onFileUpload, disabled = false }) {
           <div
             className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center ${
               dragOver
-                ? "bg-blue-100"
+                ? "bg-indigo-100"
                 : disabled
-                ? "bg-slate-200"
-                : "bg-slate-100"
+                ? "bg-gray-200"
+                : "bg-gray-100"
             }`}
           >
             <svg
               className={`w-8 h-8 ${
                 dragOver
-                  ? "text-blue-600"
+                  ? "text-indigo-600"
                   : disabled
-                  ? "text-slate-400"
-                  : "text-slate-500"
+                  ? "text-gray-400"
+                  : "text-gray-500"
               }`}
               fill="none"
               stroke="currentColor"
@@ -146,14 +146,14 @@ export default function UploadButton({ onFileUpload, disabled = false }) {
           <div>
             <h3
               className={`text-lg font-semibold ${
-                disabled ? "text-slate-400" : "text-slate-700"
+                disabled ? "text-gray-400" : "text-gray-700"
               }`}
             >
               {dragOver ? "Drop files here" : "Upload Documents"}
             </h3>
             <p
               className={`text-sm mt-1 ${
-                disabled ? "text-slate-400" : "text-slate-500"
+                disabled ? "text-gray-400" : "text-gray-500"
               }`}
             >
               {dragOver
@@ -168,8 +168,8 @@ export default function UploadButton({ onFileUpload, disabled = false }) {
             disabled={disabled}
             className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
               disabled
-                ? "bg-slate-300 text-slate-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl"
             }`}
           >
             {disabled ? "Processing..." : "📁 Choose Files"}
@@ -177,10 +177,10 @@ export default function UploadButton({ onFileUpload, disabled = false }) {
 
           {/* File Info */}
           <div className="space-y-1">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               Supported formats: PDF, TXT, MD, DOCX
             </p>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-gray-500 font-medium">
               Maximum file size: 5MB per file
             </p>
           </div>

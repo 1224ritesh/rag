@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# AI Document Assistant
+
+A Next.js RAG (Retrieval-Augmented Generation) application that allows users to upload documents and chat with their content.
+
+🚀 **Live Demo**: [https://rag-40juaeyo0-ritesh-sharmas-projects-5afba6d3.vercel.app/](https://rag-40juaeyo0-ritesh-sharmas-projects-5afba6d3.vercel.app/)
+
+## Features
+
+- 📁 **Document Upload**: Support for PDF, TXT, MD files (max 5MB per file)
+- 📝 **Text Input**: Direct text content ingestion
+- 🤖 **AI Chat**: Ask questions about your uploaded content
+- 🔍 **Vector Search**: Powered by Qdrant vector database
+- ⚡ **Real-time Processing**: Instant document processing and chunking
+- 📱 **Responsive UI**: Modern gradient design with drag-and-drop support
+
+## Tech Stack
+
+- **Frontend**: Next.js 15.5, React 19, Tailwind CSS 4
+- **AI**: Google Gemini (Chat & Embeddings)
+- **Vector DB**: Qdrant
+- **Document Processing**: LangChain, pdf-parse
+- **Build Tool**: Turbopack
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── api/
+│   │   ├── chat/route.js      # Chat API endpoint
+│   │   └── ingest/route.js    # Document ingestion API
+│   ├── components/
+│   │   ├── ChatPanel.jsx      # Chat interface
+│   │   ├── DataIngest.jsx     # Document upload interface
+│   │   └── UploadButton.jsx   # File upload component
+│   ├── globals.css
+│   ├── layout.js
+│   └── page.js               # Main page
+└── lib/
+    ├── embeddings.js         # Google Gemini embeddings
+    ├── loaders.js           # Document loaders
+    ├── qdrant.js            # Qdrant vector store
+    └── rag.js               # RAG implementation
+```
+
+## Environment Variables
+
+Create a `.env.local` file with:
+
+```env
+GOOGLE_API_KEY=your_google_api_key
+QDRANT_URL=your_qdrant_url
+QDRANT_API_KEY=your_qdrant_api_key
+QDRANT_COLLECTION=rag_collection
+GEMINI_CHAT_MODEL=gemini-1.5-pro
+GEMINI_EMBED_MODEL=gemini-embedding-001
+```
 
 ## Getting Started
 
-First, run the development server:
-
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Run the development server:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+3. Open [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage
 
-## Learn More
+1. **Upload Documents**: Use the Knowledge Base panel to upload files or add text
+2. **Chat**: Ask questions about your content in the AI Assistant panel
+3. **Get Answers**: Receive contextual responses with source citations
 
-To learn more about Next.js, take a look at the following resources:
+## API Endpoints
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `POST /api/ingest` - Process and store documents
+- `POST /api/chat` - Chat with your documents
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key Dependencies
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `@google/generative-ai` - Google Gemini AI
+- `@langchain/google-genai` - LangChain Google integration
+- `@langchain/qdrant` - Qdrant vector store
+- `@qdrant/js-client-rest` - Qdrant client
+- `pdf-parse` - PDF document parsing
+- `cheerio` - Web scraping support
