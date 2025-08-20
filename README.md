@@ -2,7 +2,7 @@
 
 A Next.js RAG (Retrieval-Augmented Generation) application that allows users to upload documents and chat with their content.
 
-🚀 **Live Demo**: [https://rag-40juaeyo0-ritesh-sharmas-projects-5afba6d3.vercel.app/](https://rag-40juaeyo0-ritesh-sharmas-projects-5afba6d3.vercel.app/)
+🚀 **Live Demo**: [https://rag-ritesh-sharmas-projects-5afba6d3.vercel.app/](https://rag-ritesh-sharmas-projects-5afba6d3.vercel.app/)
 
 ## Features
 
