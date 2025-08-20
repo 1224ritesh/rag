@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/* Prevent page scrolling for fixed layout */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* On mobile, allow vertical scrolling if needed */
+@media (max-width: 1279px) {
+  html, body {
+    overflow-y: auto;
+  }
+}
+
+#__next {
+  height: 100%;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

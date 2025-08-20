@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useClientOnly } from "@/hooks/useClientSafe";
+import { useState } from "react";
 import UploadButton from "./UploadButton";
+import DebugPanel from "./DebugPanel";
+import { useClientOnly } from "../../hooks/useClientSafe";
 
-export default function DataIngest() {
+export default function DataIngest({ sessionId }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [textContent, setTextContent] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
-  const [activeTab, setActiveTab] = useState("upload"); // 'upload', 'text', or 'url'
+  const [activeTab, setActiveTab] = useState("upload");
+  const [isClearing, setIsClearing] = useState(false);
+
   const isClient = useClientOnly();
 
   const handleFileUpload = async (files) => {
@@ -21,6 +24,10 @@ export default function DataIngest() {
     Array.from(files).forEach((file) => {
       formData.append("files", file);
     });
+
+    if (sessionId) {
+      formData.append("sessionId", sessionId);
+    }
 
     try {
       const response = await fetch("/api/ingest", {
@@ -66,6 +73,7 @@ export default function DataIngest() {
         body: JSON.stringify({
           textContent: textContent.trim(),
           filename: `Text_${Date.now()}.txt`,
+          sessionId: sessionId,
         }),
       });
 
@@ -98,7 +106,6 @@ export default function DataIngest() {
       return;
     }
 
-    // Basic URL validation
     try {
       new URL(websiteUrl);
     } catch {
@@ -117,6 +124,7 @@ export default function DataIngest() {
         },
         body: JSON.stringify({
           websiteUrl: websiteUrl.trim(),
+          sessionId: sessionId,
         }),
       });
 
@@ -145,9 +153,37 @@ export default function DataIngest() {
     }
   };
 
+  const handleClearSession = async () => {
+    setIsClearing(true);
+    setMessage("Clearing session...");
+
+    try {
+      const response = await fetch("/api/clear-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to clear session");
+      }
+
+      setUploadedFiles([]);
+      setMessage("✅ Session cleared! You can now start fresh.");
+      // Refresh the page to create a new session
+      window.location.reload();
+    } catch (error) {
+      console.error("Error clearing session:", error);
+      setMessage("❌ Error clearing session. Please try again.");
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Tab Navigation */}
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
         <button
           onClick={() => setActiveTab("upload")}
@@ -181,7 +217,6 @@ export default function DataIngest() {
         </button>
       </div>
 
-      {/* Content Area */}
       <div className="min-h-[200px]">
         {activeTab === "upload" ? (
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50/50 hover:bg-gray-50 transition-colors duration-200">
@@ -205,7 +240,7 @@ export default function DataIngest() {
               <textarea
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
-                placeholder="Enter your text content here... This could be notes, articles, documentation, or any text you want to chat with."
+                placeholder="Enter your text content here..."
                 className="w-full h-40 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none bg-white/80 backdrop-blur-sm text-black placeholder-gray-500"
                 disabled={isProcessing}
               />
@@ -263,7 +298,7 @@ export default function DataIngest() {
                   type="url"
                   value={websiteUrl}
                   onChange={(e) => setWebsiteUrl(e.target.value)}
-                  placeholder="Enter website URL (e.g., https://www.w3schools.com/html/)"
+                  placeholder="Enter website URL (e.g., https://example.com)"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80 backdrop-blur-sm text-black placeholder-gray-500"
                   disabled={isProcessing}
                 />
@@ -332,7 +367,6 @@ export default function DataIngest() {
         )}
       </div>
 
-      {/* Status Message */}
       {message && (
         <div
           className={`p-4 rounded-xl border ${
@@ -347,15 +381,32 @@ export default function DataIngest() {
         </div>
       )}
 
-      {/* Uploaded Files List */}
       {uploadedFiles.length > 0 && (
         <div className="bg-gray-50 rounded-xl p-4">
-          <h3 className="font-semibold text-gray-700 mb-3 flex items-center space-x-2">
-            <span>📚 Knowledge Base Content</span>
-            <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs">
-              {uploadedFiles.length} items
-            </span>
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-700 flex items-center space-x-2">
+              <span>📚 Knowledge Base Content</span>
+              <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded-full text-xs">
+                {uploadedFiles.length} items
+              </span>
+            </h3>
+
+            <button
+              onClick={handleClearSession}
+              disabled={isClearing || isProcessing}
+              className="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isClearing ? (
+                <span className="flex items-center space-x-1">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b border-red-700"></div>
+                  <span>Clearing...</span>
+                </span>
+              ) : (
+                "🗑️ Clear All"
+              )}
+            </button>
+          </div>
+
           <div className="space-y-2 max-h-32 overflow-y-auto">
             {uploadedFiles.map((filename, index) => (
               <div key={index} className="flex items-center space-x-3 text-sm">
@@ -367,8 +418,103 @@ export default function DataIngest() {
               </div>
             ))}
           </div>
+
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="text-xs text-gray-500 flex items-center space-x-2">
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+              <span>Your documents are isolated to this session</span>
+            </div>
+          </div>
         </div>
       )}
+
+      {/* {sessionId && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-start space-x-3">
+            <svg
+              className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">Document Isolation Active</p>
+              <p className="text-xs text-blue-700">
+                Your uploaded documents are stored in a private session and
+                won't mix with other users' content. Session ID:{" "}
+                <code className="bg-blue-100 px-1 rounded text-xs">
+                  {sessionId.slice(0, 8)}...
+                </code>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Info Panel */}
+      {sessionId && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-start space-x-3">
+              <svg
+                className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+              <div className="text-sm text-blue-800">
+                <p className="font-medium mb-1">Secure Session Active</p>
+                <p className="text-xs text-blue-700">
+                  Session ID:{" "}
+                  <code className="bg-blue-100 px-1 rounded text-xs font-mono">
+                    {sessionId.slice(0, 35)}...
+                  </code>
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Your documents are isolated to this browser tab only
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-xs font-medium transition-colors duration-200"
+            >
+              🔄 New Session
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Debug Panel - Only in development */}
+      {/* {process.env.NODE_ENV === "development" && sessionId && (
+        <DebugPanel sessionId={sessionId} />
+      )} */}
     </div>
   );
 }

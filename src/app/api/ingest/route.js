@@ -20,7 +20,15 @@ export async function POST(req) {
     // Handle text content or website URL
     if (contentType?.includes("application/json")) {
       const body = await req.json();
-      const { textContent, filename, websiteUrl } = body;
+      const { textContent, filename, websiteUrl, sessionId } = body;
+
+      // Validate session ID
+      if (!sessionId) {
+        return NextResponse.json(
+          { error: "Session ID is required" },
+          { status: 400 }
+        );
+      }
 
       // Handle website URL scraping
       if (websiteUrl) {
@@ -51,6 +59,7 @@ export async function POST(req) {
               scrapedAt: scrapedData.scrapedAt,
               contentLength: scrapedData.contentLength,
               timestamp: new Date().toISOString(),
+              sessionId: sessionId,
             },
           });
 
@@ -61,8 +70,13 @@ export async function POST(req) {
             true
           );
 
-          // Upsert documents to vector store
-          await upsertDocuments(docs);
+          // Add sessionId to metadata for all chunks
+          docs.forEach((doc) => {
+            doc.metadata.sessionId = sessionId;
+          });
+
+          // Upsert documents to vector store with session ID
+          await upsertDocuments(docs, sessionId);
 
           return NextResponse.json({
             message: "Website content processed successfully",
@@ -96,6 +110,7 @@ export async function POST(req) {
             source: filename || `text_${Date.now()}.txt`,
             type: "text_input",
             timestamp: new Date().toISOString(),
+            sessionId: sessionId,
           },
         });
 
@@ -106,8 +121,13 @@ export async function POST(req) {
           true
         );
 
-        // Upsert documents to vector store
-        await upsertDocuments(docs);
+        // Add sessionId to metadata for all chunks
+        docs.forEach((doc) => {
+          doc.metadata.sessionId = sessionId;
+        });
+
+        // Upsert documents to vector store with session ID
+        await upsertDocuments(docs, sessionId);
 
         return NextResponse.json({
           message: "Text content processed successfully",
@@ -125,6 +145,15 @@ export async function POST(req) {
     // Handle file uploads
     const formData = await req.formData();
     const files = formData.getAll("files");
+    const sessionId = formData.get("sessionId");
+
+    // Validate session ID
+    if (!sessionId) {
+      return NextResponse.json(
+        { error: "Session ID is required" },
+        { status: 400 }
+      );
+    }
 
     if (!files || files.length === 0) {
       return NextResponse.json({ error: "No files provided" }, { status: 400 });
@@ -153,6 +182,12 @@ export async function POST(req) {
 
         // Load and split documents
         const docs = await loadDocuments(buffer, file.name);
+
+        // Add sessionId to metadata for all chunks
+        docs.forEach((doc) => {
+          doc.metadata.sessionId = sessionId;
+        });
+
         allDocuments.push(...docs);
         processedCount++;
       } catch (error) {
@@ -171,8 +206,8 @@ export async function POST(req) {
       );
     }
 
-    // Upsert documents to vector store
-    await upsertDocuments(allDocuments);
+    // Upsert documents to vector store with session ID
+    await upsertDocuments(allDocuments, sessionId);
 
     const response = {
       message: "Documents processed successfully",

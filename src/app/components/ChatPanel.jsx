@@ -3,24 +3,78 @@
 import { useState, useRef, useEffect } from "react";
 import { useClientOnly, formatTimeForDisplay } from "@/hooks/useClientSafe";
 
-export default function ChatPanel() {
+export default function ChatPanel({ sessionId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(0);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const isClient = useClientOnly();
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const loadingIntervalRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Check if user is near bottom of chat
+  const isNearBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } =
+      messagesContainerRef.current;
+    return scrollHeight - scrollTop - clientHeight < 100; // 100px threshold
+  };
+
+  // Handle scroll events to detect if user scrolled up
+  const handleScroll = () => {
+    setShouldAutoScroll(isNearBottom());
+  };
+
+  // Only auto-scroll if user is near bottom
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (shouldAutoScroll) {
+      scrollToBottom();
+    }
+  }, [messages, shouldAutoScroll]);
+
+  const cancelRequest = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      setIsLoading(false);
+      setLoadingTime(0);
+
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current);
+        loadingIntervalRef.current = null;
+      }
+
+      const errorMessage = {
+        role: "assistant",
+        content: "Request cancelled by user.",
+        error: true,
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    if (!sessionId) {
+      // Show an error message
+      const errorMessage = {
+        role: "assistant",
+        content: "Session not ready. Please wait a moment and try again.",
+        error: true,
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      return;
+    }
 
     const userMessage = {
       role: "user",
@@ -30,6 +84,16 @@ export default function ChatPanel() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+    setLoadingTime(0);
+    setShouldAutoScroll(true); // Always auto-scroll when user sends a message
+
+    // Start loading timer
+    loadingIntervalRef.current = setInterval(() => {
+      setLoadingTime((prev) => prev + 1);
+    }, 1000);
+
+    // Create an AbortController for this request
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await fetch("/api/chat", {
@@ -37,35 +101,60 @@ export default function ChatPanel() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ question: input }),
+        body: JSON.stringify({
+          question: input,
+          sessionId: sessionId,
+        }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response");
+        const error = await response.json();
+        throw new Error(error.error || "Failed to get response");
       }
 
       const data = await response.json();
 
+      // Handle empty or null responses
+      let answerContent = data.answer;
+      if (!answerContent || answerContent.trim() === "") {
+        answerContent =
+          "I apologize, but I couldn't generate a proper response to your question. Please try rephrasing it or check if your documents contain relevant information.";
+      }
+
       const assistantMessage = {
         role: "assistant",
-        content: data.answer,
+        content: answerContent,
         sources: data.sources || [],
         timestamp: Date.now(),
+        debug: data.debug || {},
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error:", error);
+
+      // Don't show error message if request was aborted
+      if (error.name === "AbortError") {
+        return;
+      }
+
       const errorMessage = {
         role: "assistant",
-        content:
-          "Sorry, I encountered an error while processing your question. Please try again.",
+        content: `Sorry, I encountered an error: ${error.message}. Please make sure you have uploaded some documents first.`,
         error: true,
         timestamp: Date.now(),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      setLoadingTime(0);
+      abortControllerRef.current = null;
+
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current);
+        loadingIntervalRef.current = null;
+      }
     }
   };
 
@@ -77,9 +166,13 @@ export default function ChatPanel() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100%-5rem)]">
+    <div className="flex flex-col h-full min-h-0">
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto mb-6 space-y-4 pr-2">
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto mb-6 space-y-4 pr-2 relative min-h-0"
+      >
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -102,7 +195,8 @@ export default function ChatPanel() {
             </h3>
             <p className="text-gray-500 max-w-md mx-auto">
               Start by asking a question about your uploaded documents or text
-              content. I'll provide answers based on your knowledge base.
+              content. I'll provide answers based on your personal knowledge
+              base.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               {[
@@ -114,11 +208,29 @@ export default function ChatPanel() {
                   key={i}
                   onClick={() => setInput(suggestion)}
                   className="px-3 py-1.5 text-sm bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors duration-200 border border-indigo-200"
+                  disabled={!sessionId}
                 >
                   {suggestion}
                 </button>
               ))}
             </div>
+
+            {/* Session Status */}
+            {sessionId && (
+              <div className="mt-4 text-xs text-gray-400">
+                {sessionId ? (
+                  <span className="flex items-center justify-center space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Session active - Your documents are isolated</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center space-x-1">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                    <span>Preparing session...</span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -265,7 +377,11 @@ export default function ChatPanel() {
                         ></div>
                       </div>
                       <span className="text-gray-600 text-sm">
-                        AI is thinking...
+                        {loadingTime < 5
+                          ? "AI is thinking..."
+                          : loadingTime < 15
+                          ? `Processing... (${loadingTime}s)`
+                          : `Still processing... (${loadingTime}s) - You can cancel if needed`}
                       </span>
                     </div>
                   </div>
@@ -275,19 +391,49 @@ export default function ChatPanel() {
             <div ref={messagesEndRef} />
           </>
         )}
+
+        {/* Scroll to bottom button */}
+        {!shouldAutoScroll && messages.length > 0 && (
+          <button
+            onClick={() => {
+              setShouldAutoScroll(true);
+              scrollToBottom();
+            }}
+            className="absolute bottom-4 right-6 bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 z-10"
+            title="Scroll to bottom"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Input Form */}
-      <div className="border-t border-gray-200 pt-4">
+      <div className="border-t border-gray-200 pt-4 flex-shrink-0">
         <form onSubmit={handleSubmit} className="flex space-x-3">
           <div className="flex-1 relative">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything about your documents..."
+              placeholder={
+                sessionId
+                  ? "Ask me anything about your documents..."
+                  : "Please wait for session to load..."
+              }
               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80 backdrop-blur-sm text-black placeholder-gray-500"
-              disabled={isLoading}
+              disabled={isLoading || !sessionId}
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
               <svg
@@ -305,14 +451,33 @@ export default function ChatPanel() {
               </svg>
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl flex items-center space-x-2"
-          >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            ) : (
+          {isLoading ? (
+            <button
+              type="button"
+              onClick={cancelRequest}
+              className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl flex items-center space-x-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              <span>Cancel</span>
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim() || !sessionId}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl flex items-center space-x-2"
+            >
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -326,9 +491,9 @@ export default function ChatPanel() {
                   d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                 />
               </svg>
-            )}
-            <span>{isLoading ? "Sending..." : "Send"}</span>
-          </button>
+              <span>Send</span>
+            </button>
+          )}
         </form>
       </div>
     </div>
