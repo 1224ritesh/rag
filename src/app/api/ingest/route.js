@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import { loadDocuments } from "@/lib/loaders";
 import { upsertDocuments } from "@/lib/qdrant";
 import { Document } from "@langchain/core/documents";
+import {
+  scrapeWebsite,
+  validateUrl,
+  formatScrapedContent,
+} from "@/lib/webscraper";
 
 export const runtime = "nodejs";
 
@@ -12,42 +17,109 @@ export async function POST(req) {
   try {
     const contentType = req.headers.get("content-type");
 
-    // Handle text content
+    // Handle text content or website URL
     if (contentType?.includes("application/json")) {
-      const { textContent, filename } = await req.json();
+      const body = await req.json();
+      const { textContent, filename, websiteUrl } = body;
 
-      if (!textContent || !textContent.trim()) {
-        return NextResponse.json(
-          { error: "Text content is required" },
-          { status: 400 }
-        );
+      // Handle website URL scraping
+      if (websiteUrl) {
+        // Validate URL
+        const validation = validateUrl(websiteUrl);
+        if (!validation.valid) {
+          return NextResponse.json(
+            { error: validation.error },
+            { status: 400 }
+          );
+        }
+
+        try {
+          // Scrape website content
+          const scrapedData = await scrapeWebsite(validation.url);
+
+          // Format the scraped content
+          const formattedContent = formatScrapedContent(scrapedData);
+
+          // Create document from scraped content
+          const document = new Document({
+            pageContent: formattedContent,
+            metadata: {
+              source: scrapedData.url,
+              type: "website",
+              title: scrapedData.title,
+              domain: new URL(scrapedData.url).hostname,
+              scrapedAt: scrapedData.scrapedAt,
+              contentLength: scrapedData.contentLength,
+              timestamp: new Date().toISOString(),
+            },
+          });
+
+          // Load and split the document
+          const docs = await loadDocuments(
+            Buffer.from(formattedContent, "utf-8"),
+            `${new URL(scrapedData.url).hostname}_${Date.now()}.md`,
+            true
+          );
+
+          // Upsert documents to vector store
+          await upsertDocuments(docs);
+
+          return NextResponse.json({
+            message: "Website content processed successfully",
+            url: scrapedData.url,
+            title: scrapedData.title,
+            totalChunks: docs.length,
+            contentLength: scrapedData.contentLength,
+          });
+        } catch (error) {
+          console.error("Website scraping error:", error);
+          return NextResponse.json(
+            { error: `Failed to scrape website: ${error.message}` },
+            { status: 400 }
+          );
+        }
       }
 
-      // Create document from text content
-      const document = new Document({
-        pageContent: textContent.trim(),
-        metadata: {
-          source: filename || `text_${Date.now()}.txt`,
-          type: "text_input",
-          timestamp: new Date().toISOString(),
-        },
-      });
+      // Handle text content
+      if (textContent) {
+        if (!textContent.trim()) {
+          return NextResponse.json(
+            { error: "Text content is required" },
+            { status: 400 }
+          );
+        }
 
-      // Load and split the document
-      const docs = await loadDocuments(
-        Buffer.from(textContent, "utf-8"),
-        filename || "text_input.txt",
-        true
+        // Create document from text content
+        const document = new Document({
+          pageContent: textContent.trim(),
+          metadata: {
+            source: filename || `text_${Date.now()}.txt`,
+            type: "text_input",
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        // Load and split the document
+        const docs = await loadDocuments(
+          Buffer.from(textContent, "utf-8"),
+          filename || "text_input.txt",
+          true
+        );
+
+        // Upsert documents to vector store
+        await upsertDocuments(docs);
+
+        return NextResponse.json({
+          message: "Text content processed successfully",
+          documentsProcessed: 1,
+          totalChunks: docs.length,
+        });
+      }
+
+      return NextResponse.json(
+        { error: "Either textContent or websiteUrl is required" },
+        { status: 400 }
       );
-
-      // Upsert documents to vector store
-      await upsertDocuments(docs);
-
-      return NextResponse.json({
-        message: "Text content processed successfully",
-        documentsProcessed: 1,
-        totalChunks: docs.length,
-      });
     }
 
     // Handle file uploads

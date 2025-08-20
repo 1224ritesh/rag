@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useClientOnly, formatTimeForDisplay } from "@/hooks/useClientSafe";
 
 export default function ChatPanel() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const isClient = useClientOnly();
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -20,7 +22,11 @@ export default function ChatPanel() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage = { role: "user", content: input };
+    const userMessage = {
+      role: "user",
+      content: input,
+      timestamp: Date.now(),
+    };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -44,6 +50,7 @@ export default function ChatPanel() {
         role: "assistant",
         content: data.answer,
         sources: data.sources || [],
+        timestamp: Date.now(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -54,6 +61,7 @@ export default function ChatPanel() {
         content:
           "Sorry, I encountered an error while processing your question. Please try again.",
         error: true,
+        timestamp: Date.now(),
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -216,7 +224,7 @@ export default function ChatPanel() {
                             : "text-gray-500"
                         }`}
                       >
-                        {formatTime(Date.now())}
+                        {formatTimeForDisplay(message.timestamp)}
                       </div>
                     </div>
                   </div>

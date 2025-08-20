@@ -6,7 +6,7 @@ import { getVectorStore } from "./qdrant.js"; // implement in lib/qdrant.js
 // create a single Gemini client instance (server-side)
 const ai = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
-const GEMINI_CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-1.5-pro";
+const GEMINI_CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-2.5-flash";
 
 /**
  * retrieveContext - get top-k relevant chunks from Qdrant
